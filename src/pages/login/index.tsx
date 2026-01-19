@@ -2,16 +2,8 @@ import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import AdminLoginPage from "@/comps/auth/loginComp";
+import Head from 'next/head';
 
 import React from 'react'
 
@@ -27,22 +19,23 @@ function PageContent() {
 
     const router = useRouter();
 
-    useEffect(() => {
-        router.push("/register");
-    }, [router]);
-
     return (
-        <div className="w-[80%] h-full">Home Page SImaaaa</div>
+        // <div className="w-[100%] h-full text-black justify-center items-center flex">Info</div>
+        <div className="bg-[#343434] w-full h-full">
+            <AdminLoginPage />
+        </div>
     );
 }
 
 
-export default function Home() {
+export default function AdminLogin() {
     return (
         <>
-            <LayoutShell>
-                <PageContent></PageContent>
-            </LayoutShell>
+            <Head>
+                <title>เข้าสู่ระบบ</title>
+                <meta name="login" content="Login" />
+            </Head>
+            <PageContent></PageContent>
         </>
     );
 }

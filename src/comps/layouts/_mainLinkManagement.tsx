@@ -90,8 +90,8 @@ export function Sidebar() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem("linklian_registration_access_token");
-    router.push("/registration/login");
+    localStorage.removeItem("access_token");
+    router.push("/login");
   };
 
   return (
@@ -125,18 +125,6 @@ export function Sidebar() {
         <Button
           variant="subtle"
           color="gray"
-          leftSection={<IconHelpCircle size={20} stroke={1.5} />}
-          fullWidth
-          justify="flex-start"
-          className="mb-2 ml-1"
-          size="md"
-        >
-          <span className="text-sm font-medium">แจ้งปัญหา</span>
-        </Button>
-
-        <Button
-          variant="subtle"
-          color="gray"
           leftSection={<IconLogout size={20} stroke={1.5} />}
           fullWidth
           justify="flex-start"
@@ -146,26 +134,6 @@ export function Sidebar() {
         >
           <span className="text-sm font-medium">ออกจากระบบ</span>
         </Button>
-
-        {/* User Profile Card */}
-        <div className="flex items-center gap-3 mt-2 pt-2">
-          <Avatar
-            src={token?.institution.logo_url}
-            alt={token?.institution.inst_name_th}
-            size={40}
-            radius={40}
-            color="orange"
-            p={2}
-            // className="border-2 border-white shadow-sm"
-            className="w-10 h-10 rounded-full overflow-hidden border border-gray-200 p-1 relative"
-          >
-            {token?.institution.inst_name_th?.[0]}
-          </Avatar>
-          <div className="flex flex-col overflow-hidden">
-            <span className="text-xs font-bold text-gray-800 truncate">{userProfile.name}</span>
-            <span className="text-[10px] text-gray-500 truncate">{userProfile.email}</span>
-          </div>
-        </div>
       </div>
 
     </div>

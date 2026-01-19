@@ -20,11 +20,12 @@ const LayoutShellManagement = ({ children }: any) => {
 
     useEffect(() => {
         console.log("Router pathname changed:", router.pathname);
-        const token = decodeRegistrationToken();
+        const token = decodeToken();
         
-        if (router.pathname.startsWith("/registration") && !token){
-            router.push("/registration/login");
+        if (!token){
+            router.push("/login");
         }
+        
     }, [router.pathname]);
 
     useEffect(() => {

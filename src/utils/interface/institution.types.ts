@@ -1,6 +1,6 @@
 export interface institutionFields {
-    inst_id?: bigint;
-    inst_email?: string; 
+    inst_id?: number;
+    inst_email?: string;
     inst_password?: string;
     inst_name_th?: string;
     inst_name_en?: string;
@@ -20,4 +20,10 @@ export interface institutionFields {
     flag_valid?: boolean;
     created_at?: string;
     updated_at?: string;
+    offset?: number;
+    limit?: number;
+    sort_by?: string;
+    sort_order?: 'asc' | 'desc';
+    total_count?: number;
+    from?: string;
 }

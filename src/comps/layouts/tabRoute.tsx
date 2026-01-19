@@ -58,33 +58,23 @@ export const tabRoutesRegistration = {
 
 export const dataRegistration = [
     {
-        label: "หน้าแรก",
-        route: "/registration/home",
+        label: "สมัครสถาบัน",
+        route: "/register",
         icon: <IconHome size={18} stroke={1.8} />,
     },
     {
-        label: "ข้อมูลพื้นฐาน",
-        route: "/registration/info",
+        label: "รายละเอียดสถาบัน",
+        route: "/institution-info",
         icon: <IconDatabaseCog size={18} stroke={1.8} />,
     },
     {
-        label: "งานหลักสูตร",
-        route: "/registration/curriculum",
+        label: "ตั้งค่าธีม",
+        route: "/theme-settings",
         icon: <IconBook2 size={18} stroke={1.8} />,
     },
     {
-        label: "งานจัดตาราง",
-        route: "/registration/scheduling",
+        label: "แจ้งเตือน",
+        route: "/report",
         icon: <IconCalendarUser size={18} stroke={1.8} />,
-    },
-    {
-        label: "งานทะเบียนนักเรียน",
-        route: "/registration/registration",
-        icon: <IconUsersGroup size={18} stroke={1.8} />,
-    },
-    {
-        label: "คู่มือ",
-        route: "/registration/manual",
-        icon: <IconFileAnalytics size={18} stroke={1.8} />,
     },
 ];

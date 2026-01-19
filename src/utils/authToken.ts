@@ -3,18 +3,18 @@ import jwt from 'jsonwebtoken';
 
 export const getToken = (): string | null => {
   if (typeof window !== "undefined") {
-    const raw = localStorage.getItem("linklian_token");
+    const raw = localStorage.getItem("access_token");
     if (raw) {
       try {
         const { token, expiresAt } = JSON.parse(raw);
         if (!expiresAt || Date.now() < expiresAt) {
           return token;
         } else {
-          localStorage.removeItem("linklian_token"); // หมดอายุแล้ว ลบทิ้ง
+          localStorage.removeItem("access_token"); // หมดอายุแล้ว ลบทิ้ง
         }
       } catch (e) {
         console.error("Failed to parse token:", e);
-        localStorage.removeItem("linklian_token");
+        localStorage.removeItem("access_token");
       }
     }
   }
