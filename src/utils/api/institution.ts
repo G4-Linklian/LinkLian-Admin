@@ -13,6 +13,8 @@ export const getInstitution = async (input: institutionFields) => {
         inst_id,
         inst_email,
         inst_type,
+        approve_status,
+        from,
         flag_valid,
     } = input;
 
@@ -20,6 +22,8 @@ export const getInstitution = async (input: institutionFields) => {
         inst_id,
         inst_email,
         inst_type,
+        approve_status,
+        from,
         flag_valid,
     });
 
