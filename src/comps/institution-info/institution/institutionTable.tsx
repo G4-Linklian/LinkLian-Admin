@@ -19,8 +19,6 @@ import { Modal, Button, Group } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { PushRouter } from '@/utils/function/navigation';
 import { useNotification } from '@/comps/noti/notiComp';
-import { useEduLevelOptions } from "@/hooks/eduLevel";
-import { updateProgramUserSys } from '@/utils/api/program';
 import { ConfirmModalEx } from '@/comps/public/ConfirmModal';
 // import EditInstitutionModal from './EditInstitutionModal';
 import AddInstitutionModal from './AddInstitutionModal';
@@ -40,7 +38,6 @@ export default function InstitutionTable() {
     const [roleID, setRoleID] = useState<number>(5);
     const [offset, setOffset] = useState<number>(0);
     const { showNotification } = useNotification();
-    const { options: eduLevelOptions, isLoading: eduLevelLoading } = useEduLevelOptions();
 
     const [openedEditModal, { open: openEditModal, close: closeEditModal }] = useDisclosure(false);
     const [openedAddInstitution, { open: openAddInstitution, close: closeAddInstitution }] = useDisclosure(false);
