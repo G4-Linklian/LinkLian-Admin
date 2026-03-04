@@ -3,13 +3,8 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# เปลี่ยนจาก package-lock.json เป็น yarn.lock
-# COPY package.json yarn.lock ./
-COPY package.json package-lock.json* yarn.lock* ./
+COPY package.json package-lock.json* ./
 
-# ใช้ yarn install --frozen-lockfile แทน npm ci 
-# เพื่อให้มั่นใจว่าเวอร์ชันของ package ตรงตาม yarn.lock เป๊ะๆ
-# RUN yarn install --legacy-peer-deps
 RUN npm install --legacy-peer-deps
 
 COPY . .

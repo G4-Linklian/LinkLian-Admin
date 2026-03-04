@@ -8,7 +8,7 @@ export const loginAdmin = async (input: AdminFields) => {
         password = ""
     } = input;
 
-    const data = await fetchDataApi(`POST`, "admin.login", {
+    const data = await fetchDataApi(`POST`, "admin/login", {
         username: username,
         password: password
     });

@@ -19,8 +19,6 @@ import { Modal, Button, Group } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { PushRouter } from '@/utils/function/navigation';
 import { useNotification } from '@/comps/noti/notiComp';
-import { useEduLevelOptions } from "@/hooks/eduLevel";
-import { updateProgramUserSys } from '@/utils/api/program';
 import { ConfirmModalEx } from '@/comps/public/ConfirmModal';
 // import EditInstitutionModal from './EditInstitutionModal';
 import AddInstitutionModal from './AddInstitutionModal';
