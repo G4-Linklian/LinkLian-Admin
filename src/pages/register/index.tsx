@@ -24,7 +24,7 @@ export default function InstitutionRegister() {
     return (
         <>
             <Head>
-                <title>สมัครสถาบัน</title>
+                <title>รายการคำขอ</title>
                 <meta name="description" content="Information Page" />
             </Head>
 

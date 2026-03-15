@@ -10,12 +10,12 @@ const infoComp = () => {
         <div className='info-comp pb-8'>
             <Breadcrumb
                 items={[
-                    { label: "สมัครสถาบัน" },
+                    { label: "รายละเอียดสถาบัน" },
                 ]}
             />
             <div className="w-full h-[95%] mt-4 text-black">
                 <div className="header-section">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-3">สมัครสถาบัน</h2>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-3">รายละเอียดสถาบัน</h2>
                 </div>
 
                 <TableSection>

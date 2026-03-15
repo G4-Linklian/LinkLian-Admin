@@ -38,7 +38,7 @@ export const ConfirmModalEx = ({
             //         <Title order={2}>{title}</Title>
             //     </div>
             // }
-            radius="md"
+            radius="lg"
             padding="lg"
             className='text-center flex flex-col justify-center items-center'
         >
@@ -65,7 +65,7 @@ export const ConfirmModalEx = ({
 
             <div className={`
                 flex justify-end gap-3
-                ${form === 'map' ? "mt-5" : "mt-18"}
+                ${form === 'map' ? "mt-5" : "mt-10"}
                 `}>
                 <Button radius={'md'} variant="default" onClick={onClose}>
                     ยกเลิก

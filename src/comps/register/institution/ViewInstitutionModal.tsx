@@ -1,6 +1,7 @@
 import { Modal, Text, Group, Stack, Badge, Image, Divider, Grid, Paper, Anchor } from "@mantine/core";
 import { IconMail, IconPhone, IconWorld, IconMapPin, IconBuilding, IconFileText } from "@tabler/icons-react";
 import { institutionFields } from "@/utils/interface/institution.types";
+import { mapInstitutionType } from '@/utils/function/institutionType';
 
 interface ViewInstitutionModalProps {
     institution: institutionFields | null;
@@ -16,12 +17,15 @@ export default function ViewInstitutionModal({
     if (!institution) return null;
 
     const statusMap: Record<string, { label: string; color: string }> = {
-        approve: { label: "อนุมัติ", color: "green" },
-        reject: { label: "ปฏิเสธ", color: "red" },
+        approved: { label: "อนุมัติ", color: "green" },
+        rejected: { label: "ปฏิเสธ", color: "red" },
         pending: { label: "รอการอนุมัติ", color: "yellow" },
     };
 
-    const status = statusMap[institution.approve_status || "pending"] || statusMap.pending;
+    const statusKey = (institution.approve_status === 'approved' || institution.approve_status === 'rejected'
+        ? institution.approve_status
+        : 'pending') as 'pending' | 'approved' | 'rejected';
+    const status = statusMap[statusKey] || statusMap.pending;
 
     const InfoItem = ({ icon: Icon, label, value }: { icon: any; label: string; value?: string }) => (
         <Group gap="sm" align="flex-start">
@@ -95,7 +99,7 @@ export default function ViewInstitutionModal({
                                 )}
                                 {institution.inst_type && (
                                     <Badge variant="light" color="blue" size="sm">
-                                        {institution.inst_type}
+                                        {mapInstitutionType(institution.inst_type)}
                                     </Badge>
                                 )}
                             </Group>

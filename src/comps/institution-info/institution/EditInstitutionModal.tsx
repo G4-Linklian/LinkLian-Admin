@@ -1,251 +1,272 @@
-// import {
-//   Modal,
-//   Button,
-//   Group,
-//   TextInput,
-//   Select,
-//   Loader
-// } from "@mantine/core";
-// import { IconSelector } from '@tabler/icons-react';
-// import { useForm } from "@mantine/form";
-// import { useEffect, useState } from "react";
-// import { useDebouncedValue } from '@mantine/hooks';
-// import { getProgram } from "@/utils/api/program";
-// import { institutionFields } from '@/utils/interface/institution.types';
+import { useEffect } from "react";
+import { Button, Grid, Group, Modal, Select, TextInput } from "@mantine/core";
+import { useForm } from "@mantine/form";
+import { institutionFields } from "@/utils/interface/institution.types";
 
-// interface EditInstitutionModalProps {
-//   institiution: institutionFields | null;
-//   opened: boolean;
-//   close: () => void;
-//   onSubmit?: (values: institutionFields) => void;
-//   eduLevelOptions: { value: string; label: string }[];
-//   token?: any;
-// }
+interface EditInstitutionModalProps {
+	institution: institutionFields | null;
+	opened: boolean;
+	close: () => void;
+	onSubmit: (values: institutionFields) => Promise<void> | void;
+}
 
-// type ProgramOption = {
-//   value: string;
-//   label: string;
-// };
+const institutionTypeOptions = [
+	{ value: "school", label: "โรงเรียน" },
+	{ value: "uni", label: "มหาวิทยาลัย" },
+];
 
-// export default function EditInstitutionModal({
-//   institiution,
-//   opened,
-//   close,
-//   onSubmit,
-//   eduLevelOptions,
-//   token
-// }: EditInstitutionModalProps) {
-//   if (!institiution) return null;
+const statusOptions = [
+	{ value: "approved", label: "อนุมัติ" },
+	{ value: "rejected", label: "ปฏิเสธ" },
+	{ value: "pending", label: "รอการอนุมัติ" },
+];
 
-//   const [searchValue, setSearchValue] = useState('');
-//   const [debouncedSearch] = useDebouncedValue(searchValue, 300);
-//   const [programOptions, setProgramOptions] = useState<{ value: string; label: string }[]>([]);
-//   const [loadingProgram, setLoadingProgram] = useState(false);
+export default function EditInstitutionModal({
+	institution,
+	opened,
+	close,
+	onSubmit,
+}: EditInstitutionModalProps) {
+	const form = useForm<institutionFields>({
+		initialValues: {
+			inst_email: "",
+			inst_name_th: "",
+			inst_name_en: "",
+			inst_abbr_th: "",
+			inst_abbr_en: "",
+			inst_type: "",
+			inst_phone: "",
+			website: "",
+			address: "",
+			subdistrict: "",
+			district: "",
+			province: "",
+			postal_code: "",
+			logo_url: "",
+			docs_url: "",
+			approve_status: "",
+		},
+		validate: {
+			inst_email: (value) => {
+				if (!value) return "กรุณากรอกอีเมล";
+				if (!/^\S+@\S+$/.test(value)) return "รูปแบบอีเมลไม่ถูกต้อง";
+				return null;
+			},
+			inst_name_th: (value) => (!value ? "กรุณากรอกชื่อสถาบัน (ไทย)" : null),
+			inst_type: (value) => (!value ? "กรุณาเลือกประเภทสถาบัน" : null),
+		},
+	});
 
-//   const form = useForm<institutionFields>({
-//     initialValues: {
-//       email: "",
-//       first_name: "",
-//       middle_name: "",
-//       last_name: "",
-//       phone: "",
-//       code: "",
-//       user_status: "",
-//       edu_lev_id: undefined,
-//       program_id: undefined,
-//       user_sys_id: undefined,
-//     },
-//   });
+	useEffect(() => {
+		if (!opened) return;
 
-//   useEffect(() => {
-//     if (!institiution) return;
-//     console.log("Editing institution:", institiution);
+		form.setValues({
+			inst_email: institution?.inst_email ?? "",
+			inst_name_th: institution?.inst_name_th ?? "",
+			inst_name_en: institution?.inst_name_en ?? "",
+			inst_abbr_th: institution?.inst_abbr_th ?? "",
+			inst_abbr_en: institution?.inst_abbr_en ?? "",
+			inst_type: institution?.inst_type ?? "",
+			inst_phone: institution?.inst_phone ?? "",
+			website: institution?.website ?? "",
+			address: institution?.address ?? "",
+			subdistrict: institution?.subdistrict ?? "",
+			district: institution?.district ?? "",
+			province: institution?.province ?? "",
+			postal_code: institution?.postal_code ?? "",
+			logo_url: institution?.logo_url ?? "",
+			docs_url: institution?.docs_url ?? "",
+			approve_status: institution?.approve_status === "reject"
+				? "rejected"
+				: institution?.approve_status ?? "",
+		});
+		form.resetDirty();
+	}, [opened, institution]);
 
-//     form.setValues({
-//       email: institiution.email ?? "",
-//       first_name: institiution.first_name ?? "",
-//       middle_name: institiution.middle_name ?? "",
-//       last_name: institiution.last_name ?? "",
-//       phone: institiution.phone ?? "",
-//       code: institiution.code ?? "",
-//       user_status: institiution.user_status ?? "",
-//       edu_lev_id: institiution.edu_lev_id,
-//       program_id: institiution.program_id,
-//       user_sys_id: institiution.user_sys_id,
-//     });
+	const handleSubmit = async (values: institutionFields) => {
+		await onSubmit(values);
+	};
 
-//     if (institiution.program_id) {
-//       setProgramOptions([
-//         {
-//           value: String(institiution.program_id),
-//           label: `${institiution.program_name} - ${institiution.remark}` || ""
-//         }
-//       ]);
-//     }
+	return (
+		<Modal
+			id="edit-institution-modal"
+			opened={opened}
+			onClose={close}
+			centered
+			size="lg"
+			radius={16}
+		>
+			<h1 className="text-center text-2xl font-bold text-black mb-4">แก้ไขข้อมูลสถาบัน</h1>
+			<form
+				onSubmit={form.onSubmit(handleSubmit)}
+				className="flex flex-col gap-3"
+				id="edit-institution-form"
+			>
+				<Grid>
+					<Grid.Col span={6}>
+						<TextInput
+							label="อีเมล"
+							placeholder="กรอกอีเมล"
+							{...form.getInputProps("inst_email")}
+							radius={8}
+							withAsterisk
+                            required
+						/>
+					</Grid.Col>
+					<Grid.Col span={6}>
+						<TextInput
+							label="เบอร์โทรศัพท์"
+							placeholder="กรอกเบอร์โทรศัพท์"
+							{...form.getInputProps("inst_phone")}
+							radius={8}
+                            required
+						/>
+					</Grid.Col>
 
-//   }, [institiution]);
+					<Grid.Col span={6}>
+						<TextInput
+							label="ชื่อสถาบัน (ไทย)"
+							placeholder="กรอกชื่อสถาบันภาษาไทย"
+							{...form.getInputProps("inst_name_th")}
+							radius={8}
+							withAsterisk
+                            required
+						/>
+					</Grid.Col>
+					<Grid.Col span={6}>
+						<TextInput
+							label="ชื่อสถาบัน (อังกฤษ)"
+							placeholder="กรอกชื่อสถาบันภาษาอังกฤษ"
+							{...form.getInputProps("inst_name_en")}
+							radius={8}
+						/>
+					</Grid.Col>
 
+					<Grid.Col span={6}>
+						<TextInput
+							label="อักษรย่อ (ไทย)"
+							placeholder="กรอกอักษรย่อภาษาไทย"
+							{...form.getInputProps("inst_abbr_th")}
+							radius={8}
+						/>
+					</Grid.Col>
+					<Grid.Col span={6}>
+						<TextInput
+							label="อักษรย่อ (อังกฤษ)"
+							placeholder="กรอกอักษรย่อภาษาอังกฤษ"
+							{...form.getInputProps("inst_abbr_en")}
+							radius={8}
+						/>
+					</Grid.Col>
 
-//   const fetchProgram = async (keyword: string) => {
-//     console.log("Fetching programs with keyword:", keyword);
+					<Grid.Col span={6}>
+						<Select
+							label="ประเภทสถาบัน"
+							placeholder="เลือกประเภทสถาบัน"
+							data={institutionTypeOptions}
+							{...form.getInputProps("inst_type")}
+							radius={8}
+							withAsterisk
+						/>
+					</Grid.Col>
+					<Grid.Col span={6}>
+						<Select
+							label="สถานะ"
+							placeholder="เลือกสถานะ"
+							data={statusOptions}
+							{...form.getInputProps("approve_status")}
+							radius={8}
+							clearable
+                            required
+						/>
+					</Grid.Col>
 
-//     if (!token) return;
+					<Grid.Col span={12}>
+						<TextInput
+							label="เว็บไซต์"
+							placeholder="https://example.com"
+							{...form.getInputProps("website")}
+							radius={8}
+						/>
+					</Grid.Col>
 
-//     try {
-//       setLoadingProgram(true);
+					<Grid.Col span={12}>
+						<TextInput
+							label="ที่อยู่"
+							placeholder="กรอกที่อยู่"
+							{...form.getInputProps("address")}
+							radius={8}
+                            required
+						/>
+					</Grid.Col>
 
-//       const subjectData = await getProgram({
-//         inst_id: token.institution.inst_id,
-//         keyword,
-//         sort_order: "desc",
-//         tree_type: "leaf",
-//         limit: 10,
-//       });
+					<Grid.Col span={6}>
+						<TextInput
+							label="ตำบล/แขวง"
+							placeholder="กรอกตำบล/แขวง"
+							{...form.getInputProps("subdistrict")}
+							radius={8}
+                            required
+						/>
+					</Grid.Col>
+					<Grid.Col span={6}>
+						<TextInput
+							label="อำเภอ/เขต"
+							placeholder="กรอกอำเภอ/เขต"
+							{...form.getInputProps("district")}
+							radius={8}
+                            required
+						/>
+					</Grid.Col>
+					<Grid.Col span={6}>
+						<TextInput
+							label="จังหวัด"
+							placeholder="กรอกจังหวัด"
+							{...form.getInputProps("province")}
+							radius={8}
+                            required
+						/>
+					</Grid.Col>
 
-//       const options: ProgramOption[] = subjectData.data.map((programs: any) => ({
-//         value: programs.program_id,
-//         label: `${programs.program_name} - ${programs.remark}`,
-//       }));
+					<Grid.Col span={6}>
+						<TextInput
+							label="รหัสไปรษณีย์"
+							placeholder="กรอกรหัสไปรษณีย์"
+							{...form.getInputProps("postal_code")}
+							radius={8}
+                            required
+						/>
+					</Grid.Col>
+					<Grid.Col span={12}>
+						<TextInput
+							label="ลิงก์โลโก้"
+							placeholder="วางลิงก์โลโก้"
+							{...form.getInputProps("logo_url")}
+							radius={8}
+                            required
+						/>
+					</Grid.Col>
 
-//       setProgramOptions(prev => {
-//         const map = new Map<string, ProgramOption>();
-//         [...prev, ...options].forEach(item => {
-//           map.set(item.value, item);
-//         });
+					<Grid.Col span={12}>
+						<TextInput
+							label="ลิงก์เอกสาร"
+							placeholder="วางลิงก์เอกสาร"
+							{...form.getInputProps("docs_url")}
+							radius={8}
+                            required
+						/>
+					</Grid.Col>
+				</Grid>
 
-//         return Array.from(map.values());
-//       });
-//     } catch (error) {
-//       console.error("Failed to fetch programs:", error);
-//     } finally {
-//       setLoadingProgram(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     if (debouncedSearch.length >= 1) {
-//       fetchProgram(debouncedSearch);
-//     } else if (debouncedSearch.length === 0) {
-//       const programOption = {
-//         value: String(institiution.program_id),
-//         label: `${institiution.program_name} - ${institiution.remark}`,
-//       };
-
-//       setProgramOptions([programOption]);
-//     }
-//   }, [debouncedSearch]);
-
-//   const handleSubmit = (values: institutionFields) => {
-//     console.log("submit values:", values);
-//     onSubmit?.(values);
-//     close();
-//   };
-
-//   return (
-//     <Modal
-//       opened={opened}
-//       onClose={close}
-//       centered
-//       size="md"
-//       radius={16}
-//     >
-//       <h1 className="color-black font-bold text-2xl mb-4 text-center">จัดการนักเรียน</h1>
-//       <form onSubmit={form.onSubmit(handleSubmit)} className="gap-2 flex flex-col">
-//         <TextInput
-//           label="รหัสนักเรียน"
-//           placeholder="กรอกรหัสนักเรียน"
-//           {...form.getInputProps("code")}
-//           radius={8}
-//           required
-//         />
-//         <TextInput
-//           label="ชื่อ"
-//           placeholder="กรอกชื่อ"
-//           {...form.getInputProps("first_name")}
-//           radius={8}
-//           required
-//         />
-//         {/* <TextInput
-//           label="ชื่อกลาง"
-//           placeholder="กรอกชื่อกลาง"
-//           {...form.getInputProps("middle_name")}
-//           radius={8}
-//         /> */}
-//         <TextInput
-//           label="นามสกุล"
-//           placeholder="กรอกนามสกุล"
-//           {...form.getInputProps("last_name")}
-//           radius={8}
-//           required
-//         />
-//         <TextInput
-//           label="อีเมล"
-//           placeholder="กรอกอีเมล"
-//           {...form.getInputProps("email")}
-//           radius={8}
-//           required
-//         />
-//         <TextInput
-//           label="เบอร์โทร"
-//           placeholder="กรอกเบอร์โทร"
-//           {...form.getInputProps("phone")}
-//           radius={8}
-//         />
-//         <div className="flex gap-2 justify-between mt-3">
-
-//           <Select
-//             className="w-[40%]"
-//             label="ชั้น"
-//             placeholder="เช่น ม.1"
-//             data={eduLevelOptions}
-//             {...form.getInputProps("edu_lev_id")}
-//             radius={8}
-//             required
-//           />
-
-//           <Select
-//             className="w-[60%]"
-//             label="ห้องเรียน"
-//             placeholder="พิมพ์ชื่อห้องเรียน"
-//             data={programOptions}
-//             searchable
-//             nothingFoundMessage={loadingProgram ? "กำลังค้นหา..." : "ไม่พบรายห้องเรียน"}
-//             onSearchChange={setSearchValue}
-//             searchValue={searchValue}
-//             clearable
-//             {...form.getInputProps("program_id")}
-//             filter={({ options }) => options}
-//             radius={8}
-//             rightSection={loadingProgram ? <Loader size={16} /> : <IconSelector size={16} />}
-//             required
-//           />
-
-
-//         </div>
-
-//         <Select
-//           className="w-[100%] mt-3"
-//           label="สถานะผู้ใช้"
-//           placeholder="เลือกสถานะ"
-//           data={[
-//             { value: "Active", label: "Active (ใช้งาน)" },
-//             { value: "Inactive", label: "Inactive (ไม่ใช้งาน)" },
-//           ]}
-//           {...form.getInputProps("user_status")}
-//           radius={8}
-//           required
-//         />
-
-//         <Group justify="flex-end" className="mt-8">
-//           <Button color="blue" variant="outline" onClick={close} radius={8}>
-//             ยกเลิก
-//           </Button>
-
-//           <Button type="submit" radius={8}>
-//             บันทึก
-//           </Button>
-//         </Group>
-//       </form>
-//     </Modal>
-//   );
-// }
+				<Group justify="flex-end" mt="lg">
+					<Button variant="outline" color="blue" onClick={close} radius={8}>
+						ยกเลิก
+					</Button>
+					<Button type="submit" radius={8}>
+						บันทึก
+					</Button>
+				</Group>
+			</form>
+		</Modal>
+	);
+}

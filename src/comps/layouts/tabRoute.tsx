@@ -58,7 +58,7 @@ export const tabRoutesRegistration = {
 
 export const dataRegistration = [
     {
-        label: "สมัครสถาบัน",
+        label: "รายการคำขอ",
         route: "/register",
         icon: <IconHome size={18} stroke={1.8} />,
     },
