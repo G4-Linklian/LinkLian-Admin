@@ -125,7 +125,7 @@ const AdminLoginPage = () => {
     const isLargerThanSm = useMediaQuery("(min-width: 768px)");
 
     return (
-        <div className="flex min-h-screen bg-gradient-to-br from-[#FFFFFF] to-[#FFFFFF] relative overflow-hidden">
+        <div className="flex min-h-screen bg-linear-to-br from-[#FFFFFF] to-[#FFFFFF] relative overflow-hidden">
 
             {/* Login Form */}
             {!otpPage ? (
@@ -160,12 +160,11 @@ const AdminLoginPage = () => {
                                 leftSection={<IconLock size={18} stroke={1.5} />}
                                 size='md'
                                 {...form.getInputProps('password')}
-                            // Mantine มีปุ่มเปิด/ปิดตาให้อัตโนมัติอยู่แล้วครับ
                             />
 
                             <Group justify="space-between" mb="lg" mt="md">
                                 <Checkbox
-                                    label="Remember me"
+                                    label="จดจำการเข้าสู่ระบบ"
                                     {...form.getInputProps('rememberMe', { type: 'checkbox' })}
                                 />
 
@@ -179,7 +178,7 @@ const AdminLoginPage = () => {
                                 loading={loging}
                                 color="blue"
                             >
-                                {loging ? 'Logging in...' : 'Login'}
+                                {loging ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
                             </Button>
                         </form>
                     </div>

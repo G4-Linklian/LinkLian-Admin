@@ -17,13 +17,14 @@ import {
 import { useRouter } from "next/router";
 import { Modal, Button, Group } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { useDebouncedValue } from "@mantine/hooks";
 import { PushRouter } from '@/utils/function/navigation';
 import { useNotification } from '@/comps/noti/notiComp';
 import { ConfirmModalEx } from '@/comps/public/ConfirmModal';
-// import EditInstitutionModal from './EditInstitutionModal';
-import AddInstitutionModal from './AddInstitutionModal';
 import { getInstitution, updateInstitution } from '@/utils/api/institution';
 import { institutionFields } from '@/utils/interface/institution.types';
+import { mapInstitutionType } from '@/utils/function/institutionType';
+import FilterInstModal from './FilterInstModal';
 import ViewInstitutionModal from './ViewInstitutionModal';
 
 
@@ -38,25 +39,20 @@ export default function InstitutionTable() {
     const [instId, setInstId] = useState<number | null>(null);
     const [roleID, setRoleID] = useState<number>(5);
     const [offset, setOffset] = useState<number>(0);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [debouncedSearchTerm] = useDebouncedValue(searchTerm, 500);
     const { showNotification } = useNotification();
     const [viewInstitution, setViewInstitution] = useState<institutionFields | null>(null);
 
-    const [openedEditModal, { open: openEditModal, close: closeEditModal }] = useDisclosure(false);
-    const [openedAddInstitution, { open: openAddInstitution, close: closeAddInstitution }] = useDisclosure(false);
+    const [openedFilterModal, { open: openFilterModal, close: closeFilterModal }] = useDisclosure(false);
+    const [openedConfirmApprove, { open: openConfirmApprove, close: closeConfirmApprove }] = useDisclosure(false);
     const [openedConfirmReject, { open: openConfirmReject, close: closeConfirmReject }] = useDisclosure(false);
     const [selectedInstitution, setSelectedInstitution] =
         useState<institutionFields | null>(null);
+    const [approveId, setApproveId] = useState<number | null>(null);
     const [rejectId, setRejectId] = useState<number | null>(null);
     const [openedViewModal, { open: openViewModal, close: closeViewModal }] = useDisclosure(false);
-
-    const openEditModals = (institution: institutionFields) => {
-        setSelectedInstitution(institution);
-        openEditModal();
-    };
-
-    const openAddInstitutionModal = () => {
-        openAddInstitution();
-    };
+    const [filters, setFilters] = useState<institutionFields>({});
 
     const viewportRef = useRef<HTMLDivElement>(null);
 
@@ -67,8 +63,7 @@ export default function InstitutionTable() {
         openViewModal();
     };
 
-
-    const executeUpdate = async (id: number, status: "approved" | "reject") => {
+    const executeUpdate = async (id: number, status: "approved" | "rejected") => {
         try {
             const res = await updateInstitution({
                 inst_id: id,
@@ -90,28 +85,38 @@ export default function InstitutionTable() {
             console.error("Update status failed:", error);
             showNotification("เกิดข้อผิดพลาด", "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์", "error");
         } finally {
+            setApproveId(null);
+            setRejectId(null);
+            closeConfirmApprove();
             closeConfirmReject();
         }
     };
 
     const handleApproveStatus = (
         instId: number,
-        status: "approved" | "reject"
+        status: "approved" | "rejected"
     ) => {
-        if (status === "reject") {
+        if (status === "rejected") {
             setRejectId(instId);
             openConfirmReject();
         } else {
-            executeUpdate(instId, status);
+            setApproveId(instId);
+            openConfirmApprove();
         }
     };
 
 
-    const fetchData = async (offset: number) => {
+    const fetchData = async (offset: number, activeFilters: institutionFields = filters) => {
         setLoading(true);
+
+        const requestFilters: institutionFields = {
+            ...activeFilters,
+            keyword: debouncedSearchTerm || undefined,
+        };
 
         const userData = await getInstitution({
             approve_status: "pending",
+            ...requestFilters,
             offset: offset,
             sort_by: "inst_id",
             sort_order: "asc",
@@ -133,6 +138,23 @@ export default function InstitutionTable() {
         setLoading(false);
     };
 
+    const handleApplyFilter = async (values: institutionFields) => {
+        setFilters(values);
+        setInstitutionData([]);
+        setHasMore(true);
+        setOffset(0);
+        await fetchData(0, values);
+    };
+
+    const handleClearFilter = async () => {
+        const clearedFilters: institutionFields = {};
+        setFilters(clearedFilters);
+        setInstitutionData([]);
+        setHasMore(true);
+        setOffset(0);
+        await fetchData(0, clearedFilters);
+    };
+
     useEffect(() => {
         if (!initialized.current) {
             initialized.current = true;
@@ -140,66 +162,14 @@ export default function InstitutionTable() {
         }
     }, []);
 
-    // const addInstitutionData = async (values: institutionFields) => {
-    //     if (!instId) {
-    //         showNotification("เพิ่มสถาบันล้มเหลว!", "ไม่พบสถาบันที่เกี่ยวข้อง", "error");
-    //         return;
-    //     }
-    //     try {
-    //         const res = await createUserSys({
-    //             ...values,
-    //             inst_id: Number(instId),
-    //             role_id: Number(roleID),
-    //             learning_area_id: Number(values.learning_area_id),
-    //             edu_lev_id: Number(values.edu_lev_id),
-    //         });
+    useEffect(() => {
+        if (!initialized.current) return;
 
-    //         setInstitutionData([]);
-    //         setHasMore(true);
-    //         fetchData(0);
-
-    //         if (res.success) {
-    //             showNotification("เพิ่มสถาบันสำเร็จ!", "", "success");
-    //         } else {
-    //             showNotification("เพิ่มสถาบันล้มเหลว!", res.message, "error");
-    //         }
-    //     } catch (error) {
-    //         console.error("Create institution failed:", error);
-    //         showNotification("เพิ่มสถาบันล้มเหลว!", "An error occurred while creating the institution.", "error");
-    //     }
-    // };
-
-    const updateInstitutionData = async (values: institutionFields) => {
-        if (!instId) {
-            showNotification("แก้ไขสถาบันล้มเหลว!", "ไม่พบสถาบันที่เกี่ยวข้อง", "error");
-            return;
-        }
-
-        try {
-
-            const payload = {
-                ...values,
-                inst_id: Number(instId),
-            };
-
-
-            const res = await updateInstitution(payload);
-
-            setInstitutionData([]);
-            setHasMore(true);
-            fetchData(0);
-
-            if (res.success) {
-                showNotification("แก้ไขสถาบันสำเร็จ!", "", "success");
-            } else {
-                showNotification("แก้ไขสถาบันล้มเหลว!", res.message, "error");
-            }
-        } catch (error) {
-            console.error("Edit institution failed:", error);
-            showNotification("แก้ไขสถาบันล้มเหลว!", "An error occurred while editing the institution.", "error");
-        }
-    };
-
+        setInstitutionData([]);
+        setHasMore(true);
+        setOffset(0);
+        fetchData(0);
+    }, [debouncedSearchTerm]);
 
     const handleUpdateStatus = async (id: number, status: string) => {
         try {
@@ -230,7 +200,7 @@ export default function InstitutionTable() {
             if (scrollHeight - scrollTop <= clientHeight + 50) {
                 if (!loading && hasMore) {
                     const nextOffset = institutionData.length;
-                    fetchData(nextOffset);
+                    fetchData(nextOffset, filters);
                     setOffset(nextOffset);
                 }
             }
@@ -238,14 +208,14 @@ export default function InstitutionTable() {
     };
 
     const statusMap: Record<
-        "pending" | "approved" | "reject",
+        "pending" | "approved" | "rejected",
         { label: string; color: string }
     > = {
         approved: {
             label: "อนุมัติ",
             color: "#11bd2eff", // green-400
         },
-        reject: {
+        rejected: {
             label: "ปฏิเสธ",
             color: "#fb7185", // red-400
         },
@@ -263,19 +233,19 @@ export default function InstitutionTable() {
             <Table.Td ta="center">{element.inst_email}</Table.Td>
             <Table.Td ta="center">{element.inst_name_th}</Table.Td>
             <Table.Td ta="center">{element.inst_abbr_th}</Table.Td>
-            <Table.Td ta="center">{element.inst_type}</Table.Td>
+            <Table.Td ta="center">{mapInstitutionType(element.inst_type)}</Table.Td>
             <Table.Td ta="center">{element.province}</Table.Td>
-            <Table.Td ta="center">
+            {/* <Table.Td ta="center">
                 <div
                     className="px-2 rounded-sm text-black w-max mx-auto border"
                     style={{
-                        borderColor: statusMap[element.approve_status as "pending" | "approved" | "reject"]?.color ?? "#9ca3af",
-                        color: statusMap[element.approve_status as "pending" | "approved" | "reject"]?.color ?? "#9ca3af",
+                        borderColor: statusMap[(element.approve_status === 'approved' || element.approve_status === 'reject' ? element.approve_status : 'pending') as "pending" | "approved" | "reject"]?.color ?? "#9ca3af",
+                        color: statusMap[(element.approve_status === 'approved' || element.approve_status === 'reject' ? element.approve_status : 'pending') as "pending" | "approved" | "reject"]?.color ?? "#9ca3af",
                     }}
                 >
-                    {statusMap[element.approve_status as "pending" | "approved" | "reject"]?.label ?? "ไม่ทราบสถานะ"}
+                    {statusMap[(element.approve_status === 'approved' || element.approve_status === 'reject' ? element.approve_status : 'pending') as "pending" | "approved" | "reject"]?.label ?? "ไม่ทราบสถานะ"}
                 </div>
-            </Table.Td>
+            </Table.Td> */}
 
             <Table.Td ta="center">
                 <Group gap={5} justify="center" wrap="nowrap">
@@ -299,7 +269,7 @@ export default function InstitutionTable() {
                             variant="subtle"
                             color="red"
                             onClick={() =>
-                                handleApproveStatus(Number(element.inst_id), "reject")
+                                handleApproveStatus(Number(element.inst_id), "rejected")
                             }
                         >
                             <IconX size={20} stroke={2} />
@@ -333,7 +303,7 @@ export default function InstitutionTable() {
             <div className="flex justify-between items-center mb-3 mt-1">
                 {/* ส่วนหัวข้อ */}
                 <Text size="xl" fw={500} className='flex items-center gap-2'>
-                    รายชื่อสถาบัน
+                    รายชื่อสถาบันที่รอการอนุมัติ
                 </Text>
 
                 <div className="flex items-center gap-2">
@@ -342,7 +312,8 @@ export default function InstitutionTable() {
                         size="xs"
                         radius="md"
                         leftSection={<IconSearch size={14} />}
-                    // onChange={(event) => handleSearch(event.currentTarget.value)} 
+                        value={searchTerm}
+                        onChange={(event) => setSearchTerm(event.currentTarget.value)}
                     />
 
 
@@ -351,22 +322,9 @@ export default function InstitutionTable() {
                         size="xs"
                         radius="md"
                         leftSection={<IconFilter size={14} />}
-                        onClick={() => {
-                            // logic เปิด Modal หรือ Dropdown filter
-                        }}
+                        onClick={openFilterModal}
                     >
                         ตัวกรอง
-                    </Button>
-
-                    <Button
-                        size="xs"
-                        radius="md"
-                        // leftSection={<IconPlus size={14} />}
-                        onClick={() => {
-                            openAddInstitutionModal();
-                        }}
-                    >
-                        เพิ่มสถาบัน
                     </Button>
                 </div>
             </div>
@@ -382,14 +340,12 @@ export default function InstitutionTable() {
                 <Table stickyHeader horizontalSpacing="md" verticalSpacing="md" layout="fixed" >
                     <Table.Thead style={{ boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.08)' }}>
                         <Table.Tr>
-                            {/* <Table.Th w={5} ta="center">ลำดับ</Table.Th> */}
-                            <Table.Th w={70} ta="center">อีเมล</Table.Th>
-                            <Table.Th w={60} ta="center">ชื่อสถาบัน</Table.Th>
+                            <Table.Th w={60} ta="center">อีเมล</Table.Th>
+                            <Table.Th w={70} ta="center">ชื่อสถาบัน</Table.Th>
                             <Table.Th w={30} ta="center">อักษรย่อ</Table.Th>
                             <Table.Th w={30} ta="center">ประเภท</Table.Th>
-                            <Table.Th w={30} ta="center">จังหวัด</Table.Th>
-                            <Table.Th w={30} ta="center">สถานะ</Table.Th>
-                            <Table.Th w={5} ta="center">จัดการ</Table.Th>
+                            <Table.Th w={50} ta="center">จังหวัด</Table.Th>
+                            <Table.Th w={20} ta="center">จัดการ</Table.Th>
                         </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>{rows}</Table.Tbody>
@@ -412,36 +368,27 @@ export default function InstitutionTable() {
                 โหลดแล้ว: {institutionData.length} จาก {institutionData[0]?.total_count} รายการ
             </Text>
 
-            {/* <EditInstitutionModal
-                institution={selectedInstitution}
-                opened={openedEditModal}
-                close={closeEditModal}
-                onSubmit={async (values) => {
-                    await updateInstitutionData(values);
-                    //console.log("Edit institution values:", values);
-                    closeEditModal();
+            <ConfirmModalEx
+                opened={openedConfirmApprove}
+                onClose={() => {
+                    setApproveId(null);
+                    closeConfirmApprove();
                 }}
-                eduLevelOptions={eduLevelOptions}
-                token={token}
-            /> */}
+                title="ยืนยันการอนุมัติ"
+                description="คุณต้องการอนุมัติสถาบันนี้ใช่หรือไม่?"
+                handleConfirm={() => approveId && executeUpdate(approveId, "approved")}
+                color="green"
+            />
 
-            {/* <AddInstitutionModal
-                opened={openedAddInstitution}
-                close={closeAddInstitution}
-                onSubmit={async (values) => {
-                    await addInstitutionData(values);
-                    // console.log("Add institution values:", values);
-                    closeAddInstitution();
-                }}
-                eduLevelOptions={eduLevelOptions}
-                token={token}
-            /> */}
             <ConfirmModalEx
                 opened={openedConfirmReject}
-                onClose={closeConfirmReject}
+                onClose={() => {
+                    setRejectId(null);
+                    closeConfirmReject();
+                }}
                 title="ยืนยันการปฏิเสธ"
                 description="คุณต้องการปฏิเสธสถาบันนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้"
-                handleConfirm={() => rejectId && executeUpdate(rejectId, "reject")}
+                handleConfirm={() => rejectId && executeUpdate(rejectId, "rejected")}
                 color="red"
             />
 
@@ -449,6 +396,14 @@ export default function InstitutionTable() {
                 institution={viewInstitution}
                 opened={openedViewModal}
                 close={closeViewModal}
+            />
+
+            <FilterInstModal
+                opened={openedFilterModal}
+                close={closeFilterModal}
+                onSubmit={handleApplyFilter}
+                onClear={handleClearFilter}
+                initialValues={filters}
             />
         </div>
     );

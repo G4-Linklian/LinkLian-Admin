@@ -26,4 +26,5 @@ export interface institutionFields {
     sort_order?: 'asc' | 'desc';
     total_count?: number;
     from?: string;
+    keyword?: string;
 }
