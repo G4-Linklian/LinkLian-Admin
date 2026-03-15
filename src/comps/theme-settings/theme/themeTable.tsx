@@ -308,7 +308,7 @@ export default function ThemeSettingsDashboard() {
             </div>
 
             <ScrollArea
-                h={650}
+                h={480}
                 onScrollPositionChange={onScroll}
                 viewportRef={viewportRef}
                 type="always"

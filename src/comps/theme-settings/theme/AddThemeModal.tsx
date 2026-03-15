@@ -32,6 +32,7 @@ export default function AddThemeModal({
     const [imageZoom, setImageZoom] = useState(1);
     const [originalImageUrl, setOriginalImageUrl] = useState('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm({
         initialValues: {
@@ -82,27 +83,34 @@ export default function AddThemeModal({
     };
 
     const handleSubmit = async (values: themeSettingsFields) => {
+        if (isSubmitting) return;
+
         if (!selectedFile) {
             form.setFieldError('theme_url', 'กรุณาอัปโหลดไฟล์รูปภาพ');
             return;
         }
 
-        const hasAdjustedImage = imageZoom !== 1 || imagePosition.x !== 0 || imagePosition.y !== 0;
-        const croppedThemeUrl = hasAdjustedImage && originalImageUrl
-            ? await generateCroppedThemeImage(originalImageUrl, imagePosition, imageZoom)
-            : values.theme_url;
+        setIsSubmitting(true);
+        try {
+            const hasAdjustedImage = imageZoom !== 1 || imagePosition.x !== 0 || imagePosition.y !== 0;
+            const croppedThemeUrl = hasAdjustedImage && originalImageUrl
+                ? await generateCroppedThemeImage(originalImageUrl, imagePosition, imageZoom)
+                : values.theme_url;
 
-        const fileForSubmit = hasAdjustedImage && croppedThemeUrl
-            ? dataUrlToFile(croppedThemeUrl, selectedFile.name || 'theme.png')
-            : selectedFile;
+            const fileForSubmit = hasAdjustedImage && croppedThemeUrl
+                ? dataUrlToFile(croppedThemeUrl, selectedFile.name || 'theme.png')
+                : selectedFile;
 
-        console.log("submit values:", values);
-        await onSubmit?.({
-            ...values,
-            theme_url: croppedThemeUrl,
-            file: fileForSubmit,
-        });
-        handleClose();
+            console.log("submit values:", values);
+            await onSubmit?.({
+                ...values,
+                theme_url: croppedThemeUrl,
+                file: fileForSubmit,
+            });
+            handleClose();
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleClose = () => {
@@ -201,7 +209,7 @@ export default function AddThemeModal({
                         ยกเลิก
                     </Button>
 
-                    <Button type="submit" radius={8}>
+                    <Button type="submit" radius={8} disabled={isSubmitting} loading={isSubmitting}>
                         บันทึก
                     </Button>
                 </Group>

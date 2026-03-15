@@ -36,6 +36,7 @@ export default function EditThemeModal({
     const [originalImageUrl, setOriginalImageUrl] = useState('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [imageError, setImageError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm({
         initialValues: {
@@ -106,6 +107,8 @@ export default function EditThemeModal({
     };
 
     const handleSubmit = async (values: typeof form.values) => {
+        if (isSubmitting) return;
+
         const hasAdjustedImage = imageZoom !== 1 || imagePosition.x !== 0 || imagePosition.y !== 0;
 
         if (hasAdjustedImage && !selectedFile) {
@@ -114,23 +117,28 @@ export default function EditThemeModal({
             return;
         }
 
-        const croppedThemeUrl = hasAdjustedImage && originalImageUrl
-            ? await generateCroppedThemeImage(originalImageUrl, imagePosition, imageZoom)
-            : values.theme_url;
+        setIsSubmitting(true);
+        try {
+            const croppedThemeUrl = hasAdjustedImage && originalImageUrl
+                ? await generateCroppedThemeImage(originalImageUrl, imagePosition, imageZoom)
+                : values.theme_url;
 
-        const finalFile = hasAdjustedImage && croppedThemeUrl && selectedFile
-            ? dataUrlToFile(croppedThemeUrl, selectedFile.name || 'theme.png')
-            : selectedFile || undefined;
+            const finalFile = hasAdjustedImage && croppedThemeUrl && selectedFile
+                ? dataUrlToFile(croppedThemeUrl, selectedFile.name || 'theme.png')
+                : selectedFile || undefined;
 
-        console.log("submit edit values:", values);
-        await onSubmit?.({
-            ...values,
-            theme_url: croppedThemeUrl,
-            file: finalFile,
-            start_date: values.is_default ? null : values.start_date || undefined,
-            end_date: values.is_default ? null : values.end_date || undefined,
-        });
-        handleClose();
+            console.log("submit edit values:", values);
+            await onSubmit?.({
+                ...values,
+                theme_url: croppedThemeUrl,
+                file: finalFile,
+                start_date: values.is_default ? null : values.start_date || undefined,
+                end_date: values.is_default ? null : values.end_date || undefined,
+            });
+            handleClose();
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleClose = () => {
@@ -236,7 +244,7 @@ export default function EditThemeModal({
                         ยกเลิก
                     </Button>
 
-                    <Button type="submit" radius={8}>
+                    <Button type="submit" radius={8} disabled={isSubmitting} loading={isSubmitting}>
                         บันทึก
                     </Button>
                 </Group>
