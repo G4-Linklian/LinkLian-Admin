@@ -20,7 +20,7 @@ function buildQueryString(params: Record<string, any>): string {
 export async function fetchDataApi(
     method: string, 
     endpoint: string, 
-    body: Record<string, any> = {}
+    body: Record<string, any> | FormData = {}
 ): Promise<any> {
     const urls = process.env.NEXT_PUBLIC_BASE_URL;
     const basePath = process.env.NEXT_PUBLIC_BASE_PATH;
@@ -34,16 +34,27 @@ export async function fetchDataApi(
         let url = `${urls}${basePath}/${endpoint}`;
         
         // For GET requests, convert body to query parameters
-        if (method === 'GET' && Object.keys(body).length > 0) {
-            url += buildQueryString(body);
+        const isFormData = body instanceof FormData;
+
+        if (method === 'GET' && !isFormData && Object.keys(body).length > 0) {
+            url += buildQueryString(body as Record<string, any>);
         }
+
+        const headers: Record<string, string> = {};
+        if (!isFormData) {
+            headers['Content-Type'] = 'application/json';
+        }
+
+        const requestBody = method === 'GET'
+            ? undefined
+            : isFormData
+                ? body
+                : JSON.stringify(body);
 
         const response = await fetch(url, {
             method,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: method !== 'GET' ? JSON.stringify(body) : undefined,
+            headers,
+            body: requestBody,
         });
 
         const text = await response.text();
