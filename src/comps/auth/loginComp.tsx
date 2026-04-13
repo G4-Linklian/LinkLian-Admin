@@ -16,7 +16,7 @@ import { IconUser, IconLock } from '@tabler/icons-react';
 
 import { useMediaQuery } from "@/comps/public/useMediaQuery"
 import { decodeRegistrationToken, decodeToken } from "@/utils/authToken";
-import { useNotification } from "@/comps/noti/notiComp"
+import { useNotification } from '@/comps/noti/notiComp';
 import { loginInstitution } from '@/utils/auth/registrationLogin';
 import { loginAdmin } from '@/utils/auth/admin';
 

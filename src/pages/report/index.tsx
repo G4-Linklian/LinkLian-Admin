@@ -6,6 +6,7 @@ import Head from 'next/head';
 import React from 'react'
 
 import LayoutShellManagement from "@/comps/layouts/LayoutShellManagement";
+import ReportComp from "@/comps/report/reportComp";
 
 function PageContent() {
 
@@ -13,7 +14,7 @@ function PageContent() {
 
     return (
         <div className="w-[100%] h-full text-black px-8 py-4 bg-[#FAFAFA]">
-             {/* <CurriculumComp /> */}
+            <ReportComp />
         </div>
     );
 }
